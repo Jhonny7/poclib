@@ -53,15 +53,16 @@ dirs.forEach((dirName) => {
 
 if (uploadToCDN) {
   try {
-    const gofileCommand = `curl -s -X POST -F "file=@${distPath}" https://store1.gofile.io/uploadFile`;
-  const output = execSync(gofileCommand, { encoding: 'utf8' });
+    const renamedDistPath = path.join(rootDir, 'dist', versionedFileName);
+    fs.renameSync(distPath, renamedDistPath);
 
-  const json = JSON.parse(output);
-  if (json.status !== "ok") throw new Error("Error en la carga");
+    execSync(`git add dist/${versionedFileName}`, { stdio: 'inherit' });
+    execSync(`git commit -m "Versión ${newVersion}"`, { stdio: 'inherit' });
 
-  const link = json.data.downloadPage;
-  console.log(`Archivo subido a: ${link}`);
+    execSync(`git push`, { stdio: 'inherit' });
+
+    console.log(`Versión ${newVersion} enviada a Git con éxito.`);
   } catch (err) {
-    console.error('Error al subir con curl:', err.message);
+    console.error('Error durante el push a Git:', err.message);
   }
 }
